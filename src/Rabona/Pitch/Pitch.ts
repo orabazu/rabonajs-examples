@@ -1,4 +1,5 @@
 import * as d3 from 'd3';
+import { Layer } from 'Rabona/Layer';
 
 export type PitchOptions = {
   scaler: number;
@@ -28,7 +29,7 @@ export class Pitch {
     top: 36,
   };
 
-  private _pitch: any;
+  private _pitch: d3.Selection<SVGSVGElement, unknown, HTMLElement, any> | undefined;
 
   get pitch() {
     return this._pitch;
@@ -183,6 +184,23 @@ export class Pitch {
     this.pitch = svg;
 
     return svg;
+  }
+
+  addLayer(this: Pitch, layer: Layer) {
+    console.log('data', this, layer);
+    for (const pass of layer.data) {
+      this.pitch
+        ?.append('line')
+        .style('stroke', 'magenta')
+        .style('stroke-width', 1.2)
+        .attr('x1', pass.startX * this.pitchOptions.scaler + 50)
+        .attr('y1', pass.startY * this.pitchOptions.scaler + 50)
+        .attr('x2', pass.endX * this.pitchOptions.scaler + 50)
+        .attr('y2', pass.endY * this.pitchOptions.scaler + 50);
+      // .attr('marker-end');
+    }
+    // console.log('add layer');
+    return this;
   }
 }
 

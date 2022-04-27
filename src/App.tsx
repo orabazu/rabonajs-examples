@@ -227,17 +227,16 @@ function App() {
   };
 
   useEffect(() => {
-    console.log(matchData);
     // d3.select(pitchRef.current).append('p').text('Hello from D3');
     if (matchData.length) {
       let pitch = Rabona.pitch('pitch', pitchOptions);
-      console.log(R);
-      // drawPitch('pitch', pitchOptions, sizes);
-      // drawPasses(pitchRef, matchData);
-      // let passes = new Rabona.Layer({
-      //   type: 'pass',
-      //   data: matchData,
-      // }).addTo(pitch);
+      let passes = Rabona.layer({
+        type: 'pass',
+        data: matchData,
+        options: {},
+      }).addTo(pitch);
+
+      console.log(passes);
     }
   }, [matchData]);
 
