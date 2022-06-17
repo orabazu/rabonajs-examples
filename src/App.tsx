@@ -1,11 +1,11 @@
 import './App.css';
-import Rabona from 'rabona';
 
-import * as d3 from 'd3';
-import React, { useEffect, useRef, useState } from 'react';
 import SelectSeason from 'components/SelectSeason';
-import { Pitch } from 'rabona/lib/Pitch';
+import * as d3 from 'd3';
+import Rabona from 'rabona';
 import { Layer } from 'rabona/lib/Layer';
+import { Pitch } from 'rabona/lib/Pitch';
+import React, { useEffect, useRef, useState } from 'react';
 
 const pitchOptions = {
   scaler: 6,
@@ -29,7 +29,7 @@ function App() {
 
   const pitchRef = useRef<HTMLDivElement>(null);
 
-  const getData = async (competitionId: string = `43`, seasonId: string = `3`) => {
+  const getData = async (competitionId = `43`, seasonId = `3`) => {
     // const competitionId = 43;
     // const seasonId = 3;
     const response = await fetch(
@@ -64,7 +64,7 @@ function App() {
     // d3.select(pitchRef.current).append('p').text('Hello from D3');
     console.log(pitch);
     if (matchData.length && pitch) {
-      let passes = Rabona.layer({
+      const passes = Rabona.layer({
         type: 'line',
         data: matchData,
         options: { color: 'yellow' },

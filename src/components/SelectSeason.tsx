@@ -1,6 +1,6 @@
-import React from 'react';
 import { Select } from 'antd';
 import { BaseOptionType } from 'antd/lib/select';
+import React from 'react';
 import { competitions } from 'utils/competitions';
 const { Option } = Select;
 
