@@ -1,16 +1,17 @@
 import './App.css';
 
-import { Space } from 'antd';
+import MatchResult from 'components/MatchResult';
 import SelectMatch, { Match } from 'components/SelectMatch';
 import SelectSeason from 'components/SelectSeason';
 import * as danfo from 'danfojs';
 import Rabona from 'rabona';
 import { Layer } from 'rabona/lib/Layer';
 import { Pitch } from 'rabona/lib/Pitch';
+import { RabonaPitchOptions } from 'rabona/lib/Pitch/Pitch';
 import React, { useEffect, useRef, useState } from 'react';
 import { competitions } from 'utils/competitions';
 
-const pitchOptions = {
+const pitchOptions: RabonaPitchOptions = {
   scaler: 6,
   height: 80,
   width: 120,
@@ -31,6 +32,7 @@ function App() {
     teamId: '',
     events: [],
   });
+  const [currentMatch, setCurrentMatch] = useState<Match>();
 
   const [pitch, setPitch] = useState<Pitch | null>(null);
   const [layers, setLayers] = useState<Layer[]>([]);
@@ -68,13 +70,13 @@ function App() {
         matchId +
         '.json',
     );
-    debugger;
     const events = await eventsResponse.json();
     setCurrentTeamAndEvents({
       teamName: events[0].team.name,
       teamId: events[0].team.id.toString(),
       events,
     });
+    setCurrentMatch(matchList.find((match) => match.match_id === matchId));
   };
 
   const onCurrentTeamSelected = (teamId: number, teamName: string) => {
@@ -208,7 +210,7 @@ function App() {
 
   return (
     <div className="App">
-      <Space>
+      <div className="Header">
         <SelectSeason handleChange={onSeasonChange} />
         {matchList.length && (
           <SelectMatch
@@ -217,9 +219,19 @@ function App() {
             defaultValue={matchList[0]}
           />
         )}
-      </Space>
+      </div>
+      <div className="Game">
+        <MatchResult
+          awayTeamName={currentMatch?.away_team.away_team_name}
+          homeTeamName={currentMatch?.home_team.home_team_name}
+          awayTeamScore={currentMatch?.away_score}
+          homeTeamScore={currentMatch?.home_score}
+          matchDate={currentMatch?.match_date}
+          stadiumName={currentMatch?.stadium.name}
+        />
+      </div>
 
-      <div id="pitch" ref={pitchRef} />
+      <div id="pitch" ref={pitchRef} style={{ width: '550px', margin: 'auto' }} />
     </div>
   );
 }

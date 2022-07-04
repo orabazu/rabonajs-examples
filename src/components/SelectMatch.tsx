@@ -15,6 +15,10 @@ export type Match = {
   };
   home_score: number;
   away_score: number;
+  match_date: string;
+  stadium: {
+    name: string;
+  };
 };
 
 type Props = {
