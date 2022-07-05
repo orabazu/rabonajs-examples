@@ -1,5 +1,7 @@
-import './App.css';
+import './App.scss';
 
+import { Segmented } from 'antd';
+import { SegmentedValue } from 'antd/lib/segmented';
 import MatchResult from 'components/MatchResult';
 import SelectMatch, { Match } from 'components/SelectMatch';
 import SelectSeason from 'components/SelectSeason';
@@ -20,6 +22,13 @@ const pitchOptions: RabonaPitchOptions = {
   fillcolour: '#7ec850',
 };
 
+type TeamAndEvents = {
+  teamName: string;
+  teamId: string;
+  events: [];
+  currentMatch?: Match;
+};
+
 function App() {
   const [season, setSeason] = useState({
     competitionId: competitions[0].competition_id.toString(),
@@ -27,12 +36,13 @@ function App() {
   });
   const [matchList, setMatchList] = useState<Match[]>([]);
   const [passNetworkData, setPassNetworkData] = useState<any[]>([]);
-  const [currentTeamAndEvents, setCurrentTeamAndEvents] = useState({
+  const [currentTeamAndEvents, setCurrentTeamAndEvents] = useState<TeamAndEvents>({
     teamName: '',
     teamId: '',
     events: [],
+    currentMatch: undefined,
   });
-  const [currentMatch, setCurrentMatch] = useState<Match>();
+  const [isAway, setIsAway] = useState(false);
 
   const [pitch, setPitch] = useState<Pitch | null>(null);
   const [layers, setLayers] = useState<Layer[]>([]);
@@ -71,25 +81,54 @@ function App() {
         '.json',
     );
     const events = await eventsResponse.json();
+    const currentMatch = matchList.find((match) => match.match_id === matchId);
+    if (!currentMatch) {
+      return;
+    }
     setCurrentTeamAndEvents({
-      teamName: events[0].team.name,
-      teamId: events[0].team.id.toString(),
+      teamName: currentMatch.home_team.home_team_name,
+      teamId: currentMatch.home_team.home_team_id.toString(),
       events,
+      currentMatch,
     });
-    setCurrentMatch(matchList.find((match) => match.match_id === matchId));
   };
 
-  const onCurrentTeamSelected = (teamId: number, teamName: string) => {
+  const onCurrentTeamSelected = (val: SegmentedValue) => {
+    if (!currentTeamAndEvents.currentMatch) {
+      return;
+    }
+    console.log(val, currentTeamAndEvents.currentMatch);
+    const teamName =
+      val === 'Home'
+        ? currentTeamAndEvents.currentMatch?.home_team.home_team_name
+        : currentTeamAndEvents.currentMatch?.away_team.away_team_name;
+    const teamId =
+      val === 'Home'
+        ? currentTeamAndEvents.currentMatch?.home_team.home_team_id
+        : currentTeamAndEvents.currentMatch?.away_team.away_team_id;
+
+    setIsAway(val === 'Away');
     setCurrentTeamAndEvents({
       teamName,
       teamId: teamId.toString(),
       events: currentTeamAndEvents.events,
+      currentMatch: currentTeamAndEvents.currentMatch,
     });
   };
 
   const createPassNetworkData = () => {
     const events = currentTeamAndEvents.events as any;
     const passes = [];
+
+    if (!pitch) {
+      return;
+    }
+
+    const mirror = (val: number) => {
+      const a = pitch?.getOptions().width - val;
+      console.log(a);
+      return a;
+    };
 
     // get all passNetworkData before the first sub
     for (let index = 0; index < events.length; index++) {
@@ -100,9 +139,9 @@ function App() {
         event.team.id == currentTeamAndEvents.teamId
       ) {
         passes.push({
-          startX: event.location[0],
+          startX: isAway ? mirror(event.location[0]) : event.location[0],
           startY: event.location[1],
-          endX: event.pass.end_location[0],
+          endX: isAway ? mirror(event.pass.end_location[0]) : event.pass.end_location[0],
           endY: event.pass.end_location[1],
           length: event.pass.length,
           angle: event.pass.angle,
@@ -169,6 +208,7 @@ function App() {
     const { competitionId, seasonId } = season;
     if (!pitch) {
       const pitch = Rabona.pitch('pitch', pitchOptions);
+      console.log(pitch);
       setPitch(pitch);
     }
 
@@ -208,6 +248,8 @@ function App() {
     }
   }, [passNetworkData]);
 
+  const { currentMatch } = currentTeamAndEvents;
+
   return (
     <div className="App">
       <div className="Header">
@@ -228,6 +270,14 @@ function App() {
           homeTeamScore={currentMatch?.home_score}
           matchDate={currentMatch?.match_date}
           stadiumName={currentMatch?.stadium.name}
+        />
+      </div>
+      <div className="Title">
+        <span>Passing Network</span>
+        <Segmented
+          options={['Home', 'Away']}
+          onChange={onCurrentTeamSelected}
+          style={{ textAlign: 'center' }}
         />
       </div>
 
