@@ -20,6 +20,7 @@ const pitchOptions: RabonaPitchOptions = {
   padding: 100,
   linecolour: '#ffffff',
   fillcolour: '#7ec850',
+  showArrows: false,
 };
 
 type TeamAndEvents = {
