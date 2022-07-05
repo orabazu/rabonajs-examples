@@ -195,7 +195,7 @@ function App() {
     setPassNetworkData(mergedJson);
   };
 
-  const norm = (val: number, max = 9, min = 0) => {
+  const norm = (val: number, max = 2, min = 0) => {
     return (val - min) / (max - min);
   };
 
@@ -241,7 +241,7 @@ function App() {
         const layer = Rabona.layer({
           type: 'line',
           data: [pass],
-          options: { color: 'yellow', width: norm(pass?.pass_count) },
+          options: { color: 'yellow', width: norm(pass?.count) },
         }).addTo(pitch);
         newLayers.push(layer);
       });
