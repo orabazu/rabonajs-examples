@@ -12,6 +12,7 @@ import { Pitch } from 'rabona/lib/Pitch';
 import { RabonaPitchOptions } from 'rabona/lib/Pitch/Pitch';
 import React, { useEffect, useRef, useState } from 'react';
 import { competitions } from 'utils/competitions';
+import { norm } from 'utils/helpers';
 
 const pitchOptions: RabonaPitchOptions = {
   scaler: 6,
@@ -53,7 +54,6 @@ function App() {
   const getData = async (competitionId: string, seasonId: string) => {
     const _competitionId = competitionId || competitions[0].competition_id;
     const _seasonId = seasonId || competitions[0].season_id;
-    console.log(`competitionId: ${competitionId}`);
     const response = await fetch(
       'https://raw.githubusercontent.com/statsbomb/open-data/master/data/matches/' +
         _competitionId +
@@ -62,13 +62,11 @@ function App() {
         '.json',
     );
     const sampleMatches = await response.json();
-    console.log(sampleMatches);
     setMatchList(sampleMatches);
   };
 
   const onSeasonChange = (e: string) => {
     const [competitionId, seasonId] = e.split('/');
-    console.log([competitionId, seasonId]);
     setSeason({
       competitionId,
       seasonId,
@@ -98,7 +96,6 @@ function App() {
     if (!currentTeamAndEvents.currentMatch) {
       return;
     }
-    console.log(val, currentTeamAndEvents.currentMatch);
     const teamName =
       val === 'Home'
         ? currentTeamAndEvents.currentMatch?.home_team.home_team_name
@@ -117,6 +114,11 @@ function App() {
     });
   };
 
+  const mirror = (val: number, pitch: Pitch) => {
+    const a = pitch?.getOptions().width - val;
+    return a;
+  };
+
   const createPassNetworkData = () => {
     const events = currentTeamAndEvents.events as any;
     const passes = [];
@@ -124,12 +126,6 @@ function App() {
     if (!pitch) {
       return;
     }
-
-    const mirror = (val: number) => {
-      const a = pitch?.getOptions().width - val;
-      console.log(a);
-      return a;
-    };
 
     // get all passNetworkData before the first sub
     for (let index = 0; index < events.length; index++) {
@@ -140,9 +136,11 @@ function App() {
         event.team.id == currentTeamAndEvents.teamId
       ) {
         passes.push({
-          startX: isAway ? mirror(event.location[0]) : event.location[0],
+          startX: isAway ? mirror(event.location[0], pitch) : event.location[0],
           startY: event.location[1],
-          endX: isAway ? mirror(event.pass.end_location[0]) : event.pass.end_location[0],
+          endX: isAway
+            ? mirror(event.pass.end_location[0], pitch)
+            : event.pass.end_location[0],
           endY: event.pass.end_location[1],
           length: event.pass.length,
           angle: event.pass.angle,
@@ -155,10 +153,7 @@ function App() {
       }
     }
 
-    console.log(passes);
     const df = new danfo.DataFrame(passes);
-    console.log(df);
-    console.log(danfo);
 
     const avereagePositions = df
       .groupby(['passer'])
@@ -180,7 +175,6 @@ function App() {
     let mergedJson = danfo.toJSON(merged) as any[];
     const averagePositionsJSON = danfo.toJSON(avereagePositions) as any[];
     console.log('averagePositionsJSON :', averagePositionsJSON);
-    console.log(mergedJson);
 
     mergedJson = mergedJson.map((j) => ({
       endX: averagePositionsJSON.find((a) => j.recipient === a.passer).startX_mean,
@@ -190,26 +184,15 @@ function App() {
       ...j,
     }));
 
-    console.log('mergedJson :', mergedJson);
+    console.log('passNetworkData :', mergedJson);
 
     setPassNetworkData(mergedJson);
   };
-
-  const norm = (val: number, max = 2, min = 0) => {
-    return (val - min) / (max - min);
-  };
-
-  // useEffect(() => {
-  //   const pitch = Rabona.pitch('pitch', pitchOptions);
-  //   setPitch(pitch);
-  //   getData();
-  // }, []);
 
   useEffect(() => {
     const { competitionId, seasonId } = season;
     if (!pitch) {
       const pitch = Rabona.pitch('pitch', pitchOptions);
-      console.log(pitch);
       setPitch(pitch);
     }
 
