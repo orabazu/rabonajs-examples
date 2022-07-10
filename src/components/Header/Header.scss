@@ -1,0 +1,42 @@
+/* SCSS HEX */
+$space-cadet: #232538ff;
+$space-cadet-2: #313249ff;
+$white: #feffffff;
+$sky-blue-crayola: #19d4f0ff;
+
+$independence: #3d3f57ff;
+$y-in-mn-blue: #435194ff;
+$cornflower-blue: #868ce5ff;
+$violet-blue: #48499fff;
+$pinkish: #eb2f96;
+
+.Header {
+  background-color: $space-cadet-2;
+  color: $white !important;
+
+  .ant-page-header {
+    background-color: $space-cadet-2;
+  }
+
+  .ant-avatar.ant-avatar-circle.ant-avatar-image.xrpLogo {
+    border: 1px solid $cornflower-blue;
+    margin: 0;
+    margin: 0 5px;
+    z-index: 2;
+    box-shadow: rgb(14 14 44 / 40%) 0px -1px 0px 0px inset;
+  }
+
+  .ant-divider {
+    margin: 0;
+  }
+
+  .menuItem {
+    font-size: 20px;
+    margin-left: 30px;
+    margin-right: 10px;
+  }
+
+  a.active {
+    color: $sky-blue-crayola !important;
+  }
+}

@@ -1,0 +1,18 @@
+.PassNetworks {
+  .Header {
+    padding: 20px 30px;
+  }
+
+  .Title {
+    display: flex;
+    flex-direction: row;
+    margin: auto;
+    justify-content: space-between;
+    width: 549px;
+    padding-bottom: 10px;
+
+    & > span {
+      line-height: 2;
+    }
+  }
+}
