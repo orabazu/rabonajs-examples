@@ -1,6 +1,9 @@
+@import './../../styles/colors.scss';
+
 .PassNetworks {
   .Header {
     padding: 20px 30px;
+    background-color: $y-in-mn-blue;
   }
 
   .Title {

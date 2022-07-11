@@ -1,7 +1,7 @@
-import './MatchResult.scss';
-
 import { Typography } from 'antd';
 import React from 'react';
+
+import styles from './styles.module.scss';
 
 type MatchResultProps = {
   homeTeamName?: string;
@@ -22,15 +22,15 @@ const MatchResult: React.FC<MatchResultProps> = ({
   stadiumName,
 }) => {
   return (
-    <div className="MatchResult">
+    <div className={styles.MatchResult}>
       <p>{stadiumName}</p>
       <p>{matchDate}</p>
-      <div className="matchInfo">
-        <p className="teamName">{homeTeamName}</p>
-        <div className="score">
+      <div className={styles.matchInfo}>
+        <p className={styles.teamName}>{homeTeamName}</p>
+        <div className={styles.score}>
           <span>{homeTeamScore}</span>-<span>{awayTeamScore}</span>
         </div>
-        <p className="teamName">{awayTeamName}</p>
+        <p className={styles.teamName}>{awayTeamName}</p>
       </div>
     </div>
   );

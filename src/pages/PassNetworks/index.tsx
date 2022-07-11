@@ -1,5 +1,3 @@
-import './PassNetworks.scss';
-
 import { Segmented } from 'antd';
 import { SegmentedValue } from 'antd/lib/segmented';
 import MatchResult from 'components/MatchResult';
@@ -13,6 +11,8 @@ import { RabonaPitchOptions } from 'rabonajs/lib/Pitch/Pitch';
 import React, { useEffect, useRef, useState } from 'react';
 import { competitions } from 'utils/competitions';
 import { norm } from 'utils/helpers';
+
+import styles from './styles.module.scss';
 
 const pitchOptions: RabonaPitchOptions = {
   scaler: 6,
@@ -235,8 +235,8 @@ const PassNetworks = () => {
   const { currentMatch } = currentTeamAndEvents;
 
   return (
-    <div className="PassNetworks">
-      <div className="Header">
+    <div className={styles.PassNetworks}>
+      <div className={styles.Header}>
         <SelectSeason handleChange={onSeasonChange} />
         {matchList.length && (
           <SelectMatch
@@ -246,17 +246,15 @@ const PassNetworks = () => {
           />
         )}
       </div>
-      <div className="Game">
-        <MatchResult
-          awayTeamName={currentMatch?.away_team.away_team_name}
-          homeTeamName={currentMatch?.home_team.home_team_name}
-          awayTeamScore={currentMatch?.away_score}
-          homeTeamScore={currentMatch?.home_score}
-          matchDate={currentMatch?.match_date}
-          stadiumName={currentMatch?.stadium.name}
-        />
-      </div>
-      <div className="Title">
+      <MatchResult
+        awayTeamName={currentMatch?.away_team.away_team_name}
+        homeTeamName={currentMatch?.home_team.home_team_name}
+        awayTeamScore={currentMatch?.away_score}
+        homeTeamScore={currentMatch?.home_score}
+        matchDate={currentMatch?.match_date}
+        stadiumName={currentMatch?.stadium.name}
+      />
+      <div className={styles.Title}>
         <span>Passing Network</span>
         <Segmented
           options={['Home', 'Away']}
