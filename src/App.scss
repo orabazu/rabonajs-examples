@@ -1,19 +1,2 @@
 @import 'antd/dist/antd.css';
 @import url('https://fonts.googleapis.com/css2?family=Varela+Round&display=swap');
-
-.Header {
-  padding: 20px 30px;
-}
-
-.Title {
-  display: flex;
-  flex-direction: row;
-  margin: auto;
-  justify-content: space-between;
-  width: 549px;
-  padding-bottom: 10px;
-
-  & > span {
-    line-height: 2;
-  }
-}
