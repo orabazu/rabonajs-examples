@@ -18,9 +18,9 @@ export const Header = () => {
               <NavLink to="/pass-networks" className="menuItem">
                 Pass Networks
               </NavLink>
-              {/* <NavLink to="/kmeans" className="menuItem">
-                Pass Clustering
-              </NavLink> */}
+              <NavLink to="/pass-clusters" className="menuItem">
+                Pass Clusters
+              </NavLink>
             </>
           }
         ></PageHeader>
