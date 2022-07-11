@@ -1,4 +1,4 @@
-import { Col, Row, Segmented } from 'antd';
+import { Col, Row, Segmented, Table } from 'antd';
 import { SegmentedValue } from 'antd/lib/segmented';
 import MatchResult from 'components/MatchResult';
 import SelectMatch, { Match } from 'components/SelectMatch';
@@ -38,6 +38,15 @@ const PassClusters = () => {
   });
   const [matchList, setMatchList] = useState<Match[]>([]);
   const [passNetworkData, setPassNetworkData] = useState<any[]>([]);
+  const [passersData, setPassersData] = useState<{
+    uniquePassersArr: any[];
+    allPassesDf?: danfo.DataFrame;
+  }>({
+    uniquePassersArr: [],
+    allPassesDf: undefined,
+  });
+  const [selectedUser, setSelectedUser] = useState<any>();
+
   const [currentTeamAndEvents, setCurrentTeamAndEvents] = useState<TeamAndEvents>({
     teamName: '',
     teamId: '',
@@ -145,15 +154,45 @@ const PassClusters = () => {
           length: event.pass.length,
           angle: event.pass.angle,
           passer: event.player?.id,
+          passerName: event.player?.name,
           recipient: event.pass.recipient?.id,
           type: event.type.name,
         });
-      } else if (event.type.name === 'Substitution') {
-        break;
       }
     }
 
-    console.log(passes);
+    console.log('passes', passes);
+
+    const df = new danfo.DataFrame(passes);
+
+    const passers = df.groupby(['passer']);
+
+    const passersDf = passers.apply((x) => x);
+
+    const passerNames = passers
+      .first()
+      .loc({ columns: ['passer', 'passerName'] })
+      .setIndex({ column: 'passer' });
+
+    const uniqPassersArr = danfo.toJSON(passerNames) as never[];
+
+    // const uniqPassersObject = uniqPassersArr.reduce((acc, passerVal) => {
+    //   const { passer, passerName } = passerVal;
+    //   return { ...acc, [passer]: [...(acc[passer] || []), passerName] };
+    // }, {});
+    console.log(danfo);
+    console.log(passers);
+    console.log(uniqPassersArr);
+    // console.log(uniqPassersObject);
+
+    const usersPasses = passersDf.loc({ rows: passersDf['passer'].eq(3043) });
+
+    console.log(usersPasses);
+
+    setPassersData({
+      uniquePassersArr: uniqPassersArr,
+      allPassesDf: passersDf,
+    });
 
     // setPassNetworkData(mergedJson);
   };
@@ -201,7 +240,44 @@ const PassClusters = () => {
     }
   }, [passNetworkData]);
 
+  useEffect(() => {
+    if (selectedUser && passersData.allPassesDf) {
+      const usersPasses = passersData.allPassesDf.loc({
+        rows: passersData.allPassesDf['passer'].eq(selectedUser),
+      });
+
+      console.log(usersPasses);
+    }
+  }, [selectedUser]);
+
   const { currentMatch } = currentTeamAndEvents;
+
+  interface DataType {
+    key: React.Key;
+    passer: string;
+    passerName: string;
+  }
+
+  const columns = [
+    {
+      title: 'Player',
+      dataIndex: 'passerName',
+      key: 'passerName',
+    },
+    {
+      title: 'Player',
+      dataIndex: 'passer',
+      key: 'passer',
+    },
+  ];
+
+  // rowSelection object indicates the need for row selection
+  const rowSelection = {
+    onChange: (selectedRowKeys: React.Key[], selectedRows: DataType[]) => {
+      console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
+      setSelectedUser(selectedRowKeys[0]);
+    },
+  };
 
   return (
     <div className={styles.PassNetworks}>
@@ -233,7 +309,18 @@ const PassClusters = () => {
       </div>
 
       <Row>
-        <Col span={12}>Table here</Col>
+        <Col span={12}>
+          <Table
+            dataSource={passersData.uniquePassersArr}
+            columns={columns}
+            size="small"
+            rowSelection={{
+              type: 'radio',
+              ...rowSelection,
+            }}
+            rowKey={(record) => record.passer}
+          ></Table>
+        </Col>
         <Col span={12}>
           <div id="pitch" ref={pitchRef} style={{ margin: 'auto' }} />
         </Col>
