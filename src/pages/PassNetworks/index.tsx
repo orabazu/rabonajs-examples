@@ -222,7 +222,7 @@ const PassNetworks = () => {
       const newLayers: Layer[] = [];
       passNetworkData.forEach((pass: any) => {
         const layer = Rabona.layer({
-          type: 'line',
+          type: 'passLayer',
           data: [pass],
           options: { color: 'yellow', width: norm(pass?.count) },
         }).addTo(pitch);
