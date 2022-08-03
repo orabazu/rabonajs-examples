@@ -18,8 +18,8 @@ export const Header = () => {
               <NavLink to="/pass-networks" className="menuItem">
                 Pass Networks
               </NavLink>
-              <NavLink to="/pass-clusters" className="menuItem">
-                Pass Clusters
+              <NavLink to="/pass-analysis" className="menuItem">
+                Pass Analysis
               </NavLink>
             </>
           }

@@ -20,7 +20,6 @@ const pitchOptions: RabonaPitchOptions = {
   padding: 100,
   linecolour: '#ffffff',
   fillcolour: '#7ec850',
-  showArrows: true,
 };
 
 type TeamAndEvents = {
@@ -30,7 +29,7 @@ type TeamAndEvents = {
   currentMatch?: Match;
 };
 
-const PassClusters = () => {
+const PassAnalysis = () => {
   const [season, setSeason] = useState({
     competitionId: competitions[0].competition_id.toString(),
     seasonId: competitions[0].season_id.toString(),
@@ -158,12 +157,8 @@ const PassClusters = () => {
       }
     }
 
-    console.log('passes', passes);
-
     const df = new danfo.DataFrame(passes);
-
     const passers = df.groupby(['passer']);
-
     const passersDf = passers.apply((x) => x);
 
     const passerNames = passers
@@ -173,25 +168,10 @@ const PassClusters = () => {
 
     const uniqPassersArr = danfo.toJSON(passerNames) as never[];
 
-    // const uniqPassersObject = uniqPassersArr.reduce((acc, passerVal) => {
-    //   const { passer, passerName } = passerVal;
-    //   return { ...acc, [passer]: [...(acc[passer] || []), passerName] };
-    // }, {});
-    console.log(danfo);
-    console.log(passers);
-    console.log(uniqPassersArr);
-    // console.log(uniqPassersObject);
-
-    const usersPasses = passersDf.loc({ rows: passersDf['passer'].eq(3043) });
-
-    console.log(usersPasses);
-
     setPassersData({
       uniquePassersArr: uniqPassersArr,
       allPassesDf: passersDf,
     });
-
-    // setPassNetworkData(mergedJson);
   };
 
   useEffect(() => {
@@ -223,7 +203,6 @@ const PassClusters = () => {
         rows: passersData.allPassesDf['passer'].eq(selectedUser),
       });
 
-      console.log(usersPasses);
       const usersPassesJSON = danfo.toJSON(usersPasses) as [];
 
       if (usersPassesJSON.length && pitch) {
@@ -235,9 +214,9 @@ const PassClusters = () => {
         const newLayers: Layer[] = [];
         usersPassesJSON.forEach((pass: any) => {
           const layer = Rabona.layer({
-            type: 'line',
+            type: 'passLayer',
             data: [pass],
-            options: { color: 'yellow', width: 1 },
+            options: { color: 'yellow', width: 1.5, showArrows: true, circleRadius: 3 },
           }).addTo(pitch);
           newLayers.push(layer);
         });
@@ -267,10 +246,9 @@ const PassClusters = () => {
     },
   ];
 
-  // rowSelection object indicates the need for row selection
   const rowSelection = {
-    onChange: (selectedRowKeys: React.Key[], selectedRows: DataType[]) => {
-      console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    onChange: (selectedRowKeys: React.Key[], _selectedRows: DataType[]) => {
       setSelectedUser(selectedRowKeys[0]);
     },
   };
@@ -325,4 +303,4 @@ const PassClusters = () => {
   );
 };
 
-export default PassClusters;
+export default PassAnalysis;

@@ -174,7 +174,6 @@ const PassNetworks = () => {
 
     let mergedJson = danfo.toJSON(merged) as any[];
     const averagePositionsJSON = danfo.toJSON(avereagePositions) as any[];
-    console.log('averagePositionsJSON :', averagePositionsJSON);
 
     mergedJson = mergedJson.map((j) => ({
       endX: averagePositionsJSON.find((a) => j.recipient === a.passer).startX_mean,
@@ -183,8 +182,6 @@ const PassNetworks = () => {
       startY: j.startY_mean,
       ...j,
     }));
-
-    console.log('passNetworkData :', mergedJson);
 
     setPassNetworkData(mergedJson);
   };
