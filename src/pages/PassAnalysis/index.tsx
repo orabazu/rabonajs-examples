@@ -1,4 +1,4 @@
-import { Segmented } from 'antd';
+import { Col, Row, Segmented, Table } from 'antd';
 import { SegmentedValue } from 'antd/lib/segmented';
 import MatchResult from 'components/MatchResult';
 import SelectMatch, { Match } from 'components/SelectMatch';
@@ -10,7 +10,6 @@ import { Pitch } from 'rabonajs/lib/Pitch';
 import { RabonaPitchOptions } from 'rabonajs/lib/Pitch/Pitch';
 import React, { useEffect, useRef, useState } from 'react';
 import { competitions } from 'utils/competitions';
-import { norm } from 'utils/helpers';
 
 import styles from './styles.module.scss';
 
@@ -21,7 +20,6 @@ const pitchOptions: RabonaPitchOptions = {
   padding: 100,
   linecolour: '#ffffff',
   fillcolour: '#7ec850',
-  showArrows: false,
 };
 
 type TeamAndEvents = {
@@ -31,13 +29,21 @@ type TeamAndEvents = {
   currentMatch?: Match;
 };
 
-const PassNetworks = () => {
+const PassAnalysis = () => {
   const [season, setSeason] = useState({
     competitionId: competitions[0].competition_id.toString(),
     seasonId: competitions[0].season_id.toString(),
   });
   const [matchList, setMatchList] = useState<Match[]>([]);
-  const [passNetworkData, setPassNetworkData] = useState<any[]>([]);
+  const [passersData, setPassersData] = useState<{
+    uniquePassersArr: any[];
+    allPassesDf?: danfo.DataFrame;
+  }>({
+    uniquePassersArr: [],
+    allPassesDf: undefined,
+  });
+  const [selectedUser, setSelectedUser] = useState<any>();
+
   const [currentTeamAndEvents, setCurrentTeamAndEvents] = useState<TeamAndEvents>({
     teamName: '',
     teamId: '',
@@ -119,7 +125,7 @@ const PassNetworks = () => {
     return a;
   };
 
-  const createPassNetworkData = () => {
+  const createAllPassesData = () => {
     const events = currentTeamAndEvents.events as any;
     const passes = [];
 
@@ -127,7 +133,6 @@ const PassNetworks = () => {
       return;
     }
 
-    // get all passNetworkData before the first sub
     for (let index = 0; index < events.length; index++) {
       const event = events[index];
       if (
@@ -145,45 +150,28 @@ const PassNetworks = () => {
           length: event.pass.length,
           angle: event.pass.angle,
           passer: event.player?.id,
+          passerName: event.player?.name,
           recipient: event.pass.recipient?.id,
           type: event.type.name,
         });
-      } else if (event.type.name === 'Substitution') {
-        break;
       }
     }
 
     const df = new danfo.DataFrame(passes);
+    const passers = df.groupby(['passer']);
+    const passersDf = passers.apply((x) => x);
 
-    const avereagePositions = df
-      .groupby(['passer'])
-      .agg({ startX: 'mean', startY: ['mean', 'count'] })
-      .rename({ startY_count: 'pass_count' });
+    const passerNames = passers
+      .first()
+      .loc({ columns: ['passer', 'passerName'] })
+      .setIndex({ column: 'passer' });
 
-    const passBetween = df
-      .groupby(['passer', 'recipient'])
-      .agg({ startY: ['count'] })
-      .rename({ startY_count: 'count' });
+    const uniqPassersArr = danfo.toJSON(passerNames) as never[];
 
-    const merged = danfo.merge({
-      left: passBetween,
-      right: avereagePositions,
-      on: ['passer'],
-      how: 'left',
+    setPassersData({
+      uniquePassersArr: uniqPassersArr,
+      allPassesDf: passersDf,
     });
-
-    let mergedJson = danfo.toJSON(merged) as any[];
-    const averagePositionsJSON = danfo.toJSON(avereagePositions) as any[];
-
-    mergedJson = mergedJson.map((j) => ({
-      endX: averagePositionsJSON.find((a) => j.recipient === a.passer).startX_mean,
-      endY: averagePositionsJSON.find((a) => j.recipient === a.passer).startY_mean,
-      startX: j.startX_mean,
-      startY: j.startY_mean,
-      ...j,
-    }));
-
-    setPassNetworkData(mergedJson);
   };
 
   useEffect(() => {
@@ -205,31 +193,65 @@ const PassNetworks = () => {
   useEffect(() => {
     const { teamId, events } = currentTeamAndEvents;
     if (teamId.length && events.length) {
-      createPassNetworkData();
+      createAllPassesData();
     }
   }, [currentTeamAndEvents]);
 
   useEffect(() => {
-    if (passNetworkData.length && pitch) {
-      if (layers?.length) {
-        layers.forEach((layer) => {
-          layer.remove();
-        });
-      }
-      const newLayers: Layer[] = [];
-      passNetworkData.forEach((pass: any) => {
-        const layer = Rabona.layer({
-          type: 'passLayer',
-          data: [pass],
-          options: { color: 'yellow', width: norm(pass?.count) },
-        }).addTo(pitch);
-        newLayers.push(layer);
+    if (selectedUser && passersData.allPassesDf) {
+      const usersPasses = passersData.allPassesDf.loc({
+        rows: passersData.allPassesDf['passer'].eq(selectedUser),
       });
-      setLayers(newLayers);
+
+      const usersPassesJSON = danfo.toJSON(usersPasses) as [];
+
+      if (usersPassesJSON.length && pitch) {
+        if (layers?.length) {
+          layers.forEach((layer) => {
+            layer.remove();
+          });
+        }
+        const newLayers: Layer[] = [];
+        usersPassesJSON.forEach((pass: any) => {
+          const layer = Rabona.layer({
+            type: 'passLayer',
+            data: [pass],
+            options: { color: 'yellow', width: 1.5, showArrows: true, circleRadius: 3 },
+          }).addTo(pitch);
+          newLayers.push(layer);
+        });
+        setLayers(newLayers);
+      }
     }
-  }, [passNetworkData]);
+  }, [selectedUser]);
 
   const { currentMatch } = currentTeamAndEvents;
+
+  interface DataType {
+    key: React.Key;
+    passer: string;
+    passerName: string;
+  }
+
+  const columns = [
+    {
+      title: 'Player',
+      dataIndex: 'passerName',
+      key: 'passerName',
+    },
+    {
+      title: 'Player',
+      dataIndex: 'passer',
+      key: 'passer',
+    },
+  ];
+
+  const rowSelection = {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    onChange: (selectedRowKeys: React.Key[], _selectedRows: DataType[]) => {
+      setSelectedUser(selectedRowKeys[0]);
+    },
+  };
 
   return (
     <div className={styles.PassNetworks}>
@@ -252,7 +274,7 @@ const PassNetworks = () => {
         stadiumName={currentMatch?.stadium.name}
       />
       <div className={styles.Title}>
-        <span>Passing Network</span>
+        <span>Pass Clusters</span>
         <Segmented
           options={['Home', 'Away']}
           onChange={onCurrentTeamSelected}
@@ -260,9 +282,25 @@ const PassNetworks = () => {
         />
       </div>
 
-      <div id="pitch" ref={pitchRef} style={{ width: '550px', margin: 'auto' }} />
+      <Row>
+        <Col span={12}>
+          <Table
+            dataSource={passersData.uniquePassersArr}
+            columns={columns}
+            size="small"
+            rowSelection={{
+              type: 'radio',
+              ...rowSelection,
+            }}
+            rowKey={(record) => record.passer}
+          ></Table>
+        </Col>
+        <Col span={12}>
+          <div id="pitch" ref={pitchRef} style={{ margin: 'auto' }} />
+        </Col>
+      </Row>
     </div>
   );
 };
 
-export default PassNetworks;
+export default PassAnalysis;

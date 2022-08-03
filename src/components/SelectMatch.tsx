@@ -27,7 +27,6 @@ type Props = {
   defaultValue: Match;
 };
 const SelectMatch: React.FC<Props> = ({ handleChange, options, defaultValue }) => {
-  console.log(options, defaultValue);
   return (
     <>
       <Select
