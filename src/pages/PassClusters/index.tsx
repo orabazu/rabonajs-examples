@@ -10,7 +10,6 @@ import { Pitch } from 'rabonajs/lib/Pitch';
 import { RabonaPitchOptions } from 'rabonajs/lib/Pitch/Pitch';
 import React, { useEffect, useRef, useState } from 'react';
 import { competitions } from 'utils/competitions';
-import { norm } from 'utils/helpers';
 
 import styles from './styles.module.scss';
 
@@ -21,7 +20,7 @@ const pitchOptions: RabonaPitchOptions = {
   padding: 100,
   linecolour: '#ffffff',
   fillcolour: '#7ec850',
-  showArrows: false,
+  showArrows: true,
 };
 
 type TeamAndEvents = {
@@ -37,7 +36,6 @@ const PassClusters = () => {
     seasonId: competitions[0].season_id.toString(),
   });
   const [matchList, setMatchList] = useState<Match[]>([]);
-  const [passNetworkData, setPassNetworkData] = useState<any[]>([]);
   const [passersData, setPassersData] = useState<{
     uniquePassersArr: any[];
     allPassesDf?: danfo.DataFrame;
@@ -128,7 +126,7 @@ const PassClusters = () => {
     return a;
   };
 
-  const createPassNetworkData = () => {
+  const createAllPassesData = () => {
     const events = currentTeamAndEvents.events as any;
     const passes = [];
 
@@ -136,7 +134,6 @@ const PassClusters = () => {
       return;
     }
 
-    // get all passNetworkData before the first sub
     for (let index = 0; index < events.length; index++) {
       const event = events[index];
       if (
@@ -216,29 +213,9 @@ const PassClusters = () => {
   useEffect(() => {
     const { teamId, events } = currentTeamAndEvents;
     if (teamId.length && events.length) {
-      createPassNetworkData();
+      createAllPassesData();
     }
   }, [currentTeamAndEvents]);
-
-  useEffect(() => {
-    if (passNetworkData.length && pitch) {
-      if (layers?.length) {
-        layers.forEach((layer) => {
-          layer.remove();
-        });
-      }
-      const newLayers: Layer[] = [];
-      passNetworkData.forEach((pass: any) => {
-        const layer = Rabona.layer({
-          type: 'line',
-          data: [pass],
-          options: { color: 'yellow', width: norm(pass?.count) },
-        }).addTo(pitch);
-        newLayers.push(layer);
-      });
-      setLayers(newLayers);
-    }
-  }, [passNetworkData]);
 
   useEffect(() => {
     if (selectedUser && passersData.allPassesDf) {
@@ -247,6 +224,25 @@ const PassClusters = () => {
       });
 
       console.log(usersPasses);
+      const usersPassesJSON = danfo.toJSON(usersPasses) as [];
+
+      if (usersPassesJSON.length && pitch) {
+        if (layers?.length) {
+          layers.forEach((layer) => {
+            layer.remove();
+          });
+        }
+        const newLayers: Layer[] = [];
+        usersPassesJSON.forEach((pass: any) => {
+          const layer = Rabona.layer({
+            type: 'line',
+            data: [pass],
+            options: { color: 'yellow', width: 1 },
+          }).addTo(pitch);
+          newLayers.push(layer);
+        });
+        setLayers(newLayers);
+      }
     }
   }, [selectedUser]);
 
