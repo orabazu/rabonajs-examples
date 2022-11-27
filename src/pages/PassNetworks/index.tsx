@@ -6,6 +6,7 @@ import SelectSeason from 'components/SelectSeason';
 import * as danfo from 'danfojs';
 import Rabona from 'rabonajs';
 import { Layer } from 'rabonajs/lib/Layer';
+import { RabonaPassLayerData } from 'rabonajs/lib/Layer/Layer';
 import { Pitch } from 'rabonajs/lib/Pitch';
 import { RabonaPitchOptions } from 'rabonajs/lib/Pitch/Pitch';
 import React, { useEffect, useRef, useState } from 'react';
@@ -21,7 +22,6 @@ const pitchOptions: RabonaPitchOptions = {
   padding: 100,
   linecolour: '#ffffff',
   fillcolour: '#7ec850',
-  showArrows: false,
 };
 
 type TeamAndEvents = {
@@ -145,6 +145,7 @@ const PassNetworks = () => {
           length: event.pass.length,
           angle: event.pass.angle,
           passer: event.player?.id,
+          passerNumber: event.player?.jersey_number,
           recipient: event.pass.recipient?.id,
           type: event.type.name,
         });
@@ -216,11 +217,12 @@ const PassNetworks = () => {
           layer.remove();
         });
       }
+
       const newLayers: Layer[] = [];
       passNetworkData.forEach((pass: any) => {
         const layer = Rabona.layer({
           type: 'passLayer',
-          data: [pass],
+          data: [pass as RabonaPassLayerData],
           options: { color: 'yellow', width: norm(pass?.count) },
         }).addTo(pitch);
         newLayers.push(layer);

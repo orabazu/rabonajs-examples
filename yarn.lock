@@ -3165,9 +3165,9 @@
   "resolved" "https://registry.npmjs.org/queue-microtask/-/queue-microtask-1.2.3.tgz"
   "version" "1.2.3"
 
-"rabonajs@file:../../js/rabona.js":
-  "resolved" "file:../../js/rabona.js"
-  "version" "0.0.1-alpha.2"
+"rabonajs@file:../rabona.js":
+  "resolved" "file:../rabona.js"
+  "version" "0.0.2-alpha.0"
   dependencies:
     "d3" "^7.4.4"
     "typescript" "^4.7.2"

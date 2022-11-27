@@ -6,6 +6,11 @@ import SelectSeason from 'components/SelectSeason';
 import * as danfo from 'danfojs';
 import Rabona from 'rabonajs';
 import { Layer } from 'rabonajs/lib/Layer';
+import {
+  RabonaCircleLayerData,
+  RabonaLineLayerData,
+  RabonaPassLayerData,
+} from 'rabonajs/lib/Layer/Layer';
 import { Pitch } from 'rabonajs/lib/Pitch';
 import { RabonaPitchOptions } from 'rabonajs/lib/Pitch/Pitch';
 import React, { useEffect, useRef, useState } from 'react';
@@ -212,11 +217,11 @@ const PassAnalysis = () => {
           });
         }
         const newLayers: Layer[] = [];
-        usersPassesJSON.forEach((pass: any) => {
+        usersPassesJSON.forEach((pass: RabonaPassLayerData) => {
           const layer = Rabona.layer({
             type: 'passLayer',
             data: [pass],
-            options: { color: 'yellow', width: 1.5, showArrows: true, circleRadius: 3 },
+            options: { color: 'yellow', width: 1.5, showArrows: true, radius: 3 },
           }).addTo(pitch);
           newLayers.push(layer);
         });
